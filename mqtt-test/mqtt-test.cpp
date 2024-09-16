@@ -1,5 +1,45 @@
 
 
+
+/*
+
+mqtt topics for shelly device
+
+test device is Shelly Plus 1PM
+
+access by http (web browser), if using the inbuilt access point, the address is http://192.168.33.1
+
+
+settings -> access point -> enable access point = false (don't do this until successfully adding wifi)
+settings -> bluetooth -> enable bluetooth = false
+settings -> mqtt -> mqtt prefix = shelly-pivot-1 (for example)
+settings -> mqtt -> server = 192.168.88.158 (for example)
+settings -> mqtt -> client id = shelly-pivot-1 (for example)
+settings -> device name -> device name = shelly-pivot-1 (for example)
+
+mqtt server is actually mqtt broker
+
+
+
+subscribe to these mqtt topics
+shelly-pivot-1/status/switch:0 (output relay)
+shelly-pivot-1/status/input:0 (switch)
+
+send the following mqtt message
+shelly-pivot-1/command = status_update
+
+this also works
+shelly-pivot-1/command/switch:0 = status_update
+shelly-pivot-1/command/switch:0 = on
+shelly-pivot-1/command/switch:0 = off
+
+this doesn't work (but is covered by doing "status_update" for the whole device)
+shelly-pivot-1/command/input:0 = status_update
+
+
+*/
+
+
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -8,6 +48,10 @@
 
 
 // mosquitto
+
+
+const std::string mqtt_broker_ip = "192.168.88.158";
+const int mqtt_broker_port = 1883;
 
 
 void pub(mosquitto* mosq, const std::string& topic, const std::string& payload)
@@ -37,7 +81,7 @@ int main()
 
 
 
-	if (mosquitto_connect(mosq, "192.168.88.158", 1883, 60) != MOSQ_ERR_SUCCESS)
+	if (mosquitto_connect(mosq, mqtt_broker_ip.c_str(), mqtt_broker_port, 60) != MOSQ_ERR_SUCCESS)
 	{
 		std::cerr << "Error: connecting to MQTT broker failed" << "\n";
 	}
