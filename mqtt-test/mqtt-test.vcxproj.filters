@@ -18,6 +18,9 @@
     <ClCompile Include="mqtt-test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="simdjson.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

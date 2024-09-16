@@ -46,6 +46,10 @@ shelly-pivot-1/command/input:0 = status_update
 
 #include "mosquitto.h"
 
+#include "simdjson.h"
+
+namespace sj = simdjson;
+
 
 // mosquitto
 
@@ -93,11 +97,40 @@ int main()
 
 	mosquitto_message_callback_set(mosq, [](mosquitto* mosq, void* obj, const mosquitto_message* message) {
 
-		std::string payload = std::string((char*)message->payload, message->payloadlen);
+		std::string topic = message->topic;
+		//std::string payload = std::string(
+
+		sj::padded_string payload = sj::padded_string((char*)message->payload, message->payloadlen);
 
 		std::cout << "-" << "\n";
 		std::cout << "topic: " << message->topic << "\n";
 		std::cout << "payload: " << payload << "\n";
+
+
+		if (topic == "shelly-pivot-1/status/switch:0") {
+			sj::ondemand::parser parser;
+			sj::ondemand::document p = parser.iterate(payload);
+
+			auto result1 = p.find_field("output");
+			if (result1.error() == sj::SUCCESS) {
+				std::cout << "output is " << p["output"] << std::endl;
+			}
+			else {
+				std::cout << "output doesn't exist" << std::endl;
+			}
+
+			auto result2 = p.find_field("thing");
+			if (result2.error() == sj::SUCCESS) {
+				std::cout << "thing is " << p["thing"] << std::endl;
+			}
+			else {
+				std::cout << "thing doesn't exist" << std::endl;
+			}
+
+
+
+			std::cout << std::endl;
+		}
 		});
 
 
