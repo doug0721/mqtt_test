@@ -69,6 +69,17 @@ void sub(mosquitto* mosq, const std::string& topic)
 }
 
 
+void do_subscriptions(mosquitto* mosq)
+{
+	// subscribe to topics we're interested in
+	sub(mosq, "shelly-pivot-1/status/switch:0");
+	sub(mosq, "shelly-pivot-1/status/input:0");
+
+	//
+	pub(mosq, "shelly-pivot-1/command", "status_update");
+}
+
+
 int main()
 {
 
@@ -94,13 +105,28 @@ int main()
 	}
 
 
+	mosquitto_connect_callback_set(mosq, [](mosquitto* mosq, void* obj, int rc) {
+		std::cout << std::endl;
+		std::cout << "mosquitto connected" << std::endl;
+		std::cout << std::endl;
+
+		do_subscriptions(mosq);
+		}
+	);
+
+	mosquitto_disconnect_callback_set(mosq, [](struct mosquitto*, void* obj, int rc) {
+		std::cout << std::endl;
+		std::cout << "mosquitto disconnected" << std::endl;
+		std::cout << std::endl;
+		}
+	);
 
 	mosquitto_message_callback_set(mosq, [](mosquitto* mosq, void* obj, const mosquitto_message* message) {
 
 		std::string topic = message->topic;
 		//std::string payload = std::string(
 
-		sj::padded_string payload = sj::padded_string((char*)message->payload, message->payloadlen);
+		const sj::padded_string payload = sj::padded_string((char*)message->payload, message->payloadlen);
 
 		std::cout << "-" << "\n";
 		std::cout << "topic: " << message->topic << "\n";
@@ -133,11 +159,6 @@ int main()
 		}
 		});
 
-
-	sub(mosq, "shelly-pivot-1/status/switch:0");
-	sub(mosq, "shelly-pivot-1/status/input:0");
-
-	pub(mosq, "shelly-pivot-1/command", "status_update");
 
 
 	std::thread mosq_thread(mosquitto_loop_start, mosq);
